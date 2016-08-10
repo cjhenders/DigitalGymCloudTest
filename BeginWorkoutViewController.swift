@@ -70,10 +70,12 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
 
         // Refresh Data on Load
         onRefresh()
+        makearrays()
         
         // Navigation and UI Interaction
         
-        self.weightText.delegate = self
+        //self.weightText.delegate = self
+        self.navigationItem.hidesBackButton = true
         
         
     }
@@ -124,10 +126,10 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
     // Mark: Navigation and UI Interaction
     
     // Results in Keyboard to Disappear after hitting enter
-    func textFieldShouldReturn(textField: UITextField) -> Bool {
-        weightText.resignFirstResponder()
-        return true
-    }
+    //func textFieldShouldReturn(textField: UITextField) -> Bool {
+        //weightText.resignFirstResponder()
+        //return true
+    //}
     
     
   
@@ -135,10 +137,11 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
     
     var genderText: String = "Male"
     var height : Float = 0
-    @IBOutlet weak var ageText: UITextField!
-    @IBOutlet weak var weightText: UITextField!
-    @IBOutlet weak var feetText: UITextField!
-    @IBOutlet weak var inchText: UITextField!
+    var inchText: String = "0"
+    var feetText: String = "4"
+    var ageText: String = "1"
+    var weightText: String = "50"
+    
 
    
     
@@ -146,20 +149,22 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
     
     func didSaveItem()
     {
-        if inchText.text != "" || feetText.text != "" {
-        height = ((Float(feetText.text!)! * 12) + Float(inchText.text!)!)
+        if inchText == "0" && feetText == "4" {
+            height == 48
         }
-        else{
-            height = 0
+        else {
+            height = ((Float(feetText)! * 12) + (Float(inchText))!)
         }
+        
         let gender = genderText
-        let age = Float(ageText.text!)
-        let weight = Float(weightText.text!)
+        let age = Float(ageText)
+        let weight = Float(weightText)
         let timestamp = Float(NSDate().timeIntervalSince1970)
         var itemToInsert: [String : AnyObject] = [:]
         
+        
         // We set created at to now, so it will sort as we expect it to post the push/pull
-        if age != nil || weight != nil || height != 0 {
+        if age != 1 && weight != 50 && height != 48 {
             itemToInsert = ["gender": gender, "complete": false , "age": age!, "weight": weight!, "startstamp": timestamp, "height": height ]
         }
         else {
@@ -180,6 +185,29 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
     //Mark: PickerViewData
     
     let genderarray : [String] = ["Male","Female"]
+    var agearray : [String] = []
+    var weightarray : [String] = []
+    let feetarray = ["4","5","6"]
+    let incharray = ["0","1","2","3","4","5","6","7","8","9","10","11"]
+    
+    //Mark: Generate Age and Weight array
+    
+    func makearrays(){
+        var age = 0
+        var weight = 50
+        for _ in 1...100 {
+            age += 1
+            agearray.append("\(age)")
+        }
+        
+        for _ in 1...65 {
+            weight += 5
+            weightarray.append("\(weight)")
+        }
+    }
+    
+    
+    
     
     //Mark: PickerViewSetup
     
@@ -190,27 +218,48 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
     func pickerView(pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
         if pickerView.tag == 1 {
             return 2
-        /*}else if pickerView.tag == 2 {
+        } else if pickerView.tag == 2 {
             return agearray.count
-        }else if pickerView.tag == 3 {
-            return heightarray.count
-        } else {
+        } else if pickerView.tag == 3 {
+            return feetarray.count
+        } else if pickerView.tag == 4{
+            return incharray.count
+        } else if pickerView.tag == 5{
             return weightarray.count
-        */
-        } else{
-            return 1
+        } else  {
+            return 4
         }
     }
+
+
     func pickerView(pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
         if pickerView.tag == 1 {
             return genderarray[row]
-        }
-        else {
+        } else if pickerView.tag == 2 {
+            return agearray[row]
+        } else if pickerView.tag == 3 {
+            return feetarray[row]
+        } else if pickerView.tag == 4 {
+            return incharray[row]
+        } else if pickerView.tag == 5 {
+            return weightarray[row]
+        } else {
             return "?"
         }
     }
     func pickerView(pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-             genderText = genderarray[row]
-       
-}
+        if pickerView.tag == 1 {
+            genderText = genderarray[row]
+        } else if pickerView.tag == 2 {
+            ageText = agearray[row]
+        } else if pickerView.tag == 3 {
+           feetText = feetarray[row]
+        } else if pickerView.tag == 4 {
+            inchText = incharray[row]
+        } else if pickerView.tag == 5 {
+            weightText = weightarray[row]
+        } else {
+            return
+        }
+    }
 }

@@ -13,11 +13,14 @@ import Charts
 
 class WorkoutDataViewController: UIViewController, NSFetchedResultsControllerDelegate {
     
-    // Mark: Properties
+    // Mark: Properties and Variables
     @IBOutlet weak var lineChartView: LineChartView!
     
-    
-    
+    var workoutcompleted: Bool = false
+    var timer = NSTimer()
+    var datatimer = NSTimer()
+    var seccounter = 0
+    var mincounter = 0
     var table : MSSyncTable?
     var store : MSCoreDataStore?
     
@@ -69,52 +72,16 @@ class WorkoutDataViewController: UIViewController, NSFetchedResultsControllerDel
         
         onRefresh()
         
-        let fetchRequest = NSFetchRequest(entityName: "TodoItem")
         
-        // show only non-completed items
-        fetchRequest.predicate = NSPredicate(format: "complete != true")
-        
-        // sort by item text
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
-
-
-        
-        var resultsof:[AnyObject] = []
-        do {
-             resultsof=try managedObjectContext.executeFetchRequest(fetchRequest)
-
-        } catch let error1 as NSError {
-            error = error1
-            print("Unresolved error \(error), \(error?.userInfo)")
-            abort()
-        }
-
-        
-        print("test log")
-        print(resultsof.count)
-        
-        // Refresh data on load
-        //self.refreshControl?.beginRefreshing()
-        //self.onRefresh(self.refreshControl)
-        
-        //configureData()
-        
-        //let indexPath = NSIndexPath(forRow:1, inSection: 1)
-        //let item = self.fetchedResultController.objectAtIndexPath(indexPath) as! NSManagedObject
-        
-
-        //let item = fetchedResultController
-        //var countofitems = resultsof.count
-        //let recentitem = (countofitems - 1)
-        
-        //let text = resultsof[recentitem].valueForKey("text") as? String
-        
-        //let subtitle = item.valueForKey("subtitle") as? String
-        
-        //timeLabel.text = text
-        //timeLabel.text = "hello"
+        //Mark: Navigation Items
 
         self.navigationItem.hidesBackButton = true
+        
+        // Timer Initilization
+        starttimer()
+        
+        //Mark: Data pull
+        startdatacollection()
 
     }
     
@@ -146,7 +113,6 @@ class WorkoutDataViewController: UIViewController, NSFetchedResultsControllerDel
      }
      }
      
-     //self.refreshControl?.endRefreshing()
      }
      }
  
@@ -154,36 +120,95 @@ class WorkoutDataViewController: UIViewController, NSFetchedResultsControllerDel
         super.didReceiveMemoryWarning()
     }
     
-    // MARK: Table Controls
+    // MARK: Timer Control used to start Time Elapsed Timer
+    
+    func starttimer(){
+        timeLabel.text = String(seccounter)
+        minTimeLabel.text = String(mincounter)
+        timer = NSTimer.scheduledTimerWithTimeInterval(1, target:self, selector: #selector(WorkoutDataViewController.updatecounter), userInfo: nil, repeats: true)
+    }
+    
+    func updatecounter(){
+        if seccounter == 60 {
+            seccounter = 0
+            mincounter = mincounter + 1
+            minTimeLabel.text = String(mincounter)
+            timeLabel.text = String(seccounter)
+        } else{
+        timeLabel.text = String(seccounter++)
+        }
+    }
 
     
     // Mark: Labels
-    @IBOutlet weak var timeElapsedLabel: UILabel!
-    @IBOutlet weak var latestRPMLabel: UILabel!
-    @IBOutlet weak var timeLabel: UILabel!
     
-    func configureData() {
-        
-        do {
-            try self.fetchedResultController.performFetch()
-        }
-        catch {
-            print("Error")
-        }
-        
-        let indexPath = NSIndexPath(forRow:0, inSection: 0)
-        let item = self.fetchedResultController.objectAtIndexPath(indexPath) as! NSManagedObject
-        
-        let text = item.valueForKey("text") as? String
-        
-        let subtitle = item.valueForKey("subtitle") as? String
-        
-        latestRPMLabel.text = text
-        timeLabel.text = "hello"
+    @IBOutlet weak var timeLabel: UILabel!
+    @IBOutlet weak var latestRPMLabel: UILabel!
+    @IBOutlet weak var minTimeLabel: UILabel!
+    
+    //Mark: Data Acquistion Functions that start the pulling of data
+    
+    func startdatacollection() {
+        datatimer = NSTimer.scheduledTimerWithTimeInterval(4, target: self, selector: #selector(WorkoutDataViewController.configureData), userInfo: nil, repeats: true)
     }
     
-    // MARK: Navigation
+    // This function does a fetch request to see the latest item created in the table and then pulls it and sets the text label to the value of he latest row.
+    func configureData() {
     
+            onRefresh()
+        
+            let fetchRequest = NSFetchRequest(entityName: "TodoItem")
+        
+            // show only non-completed items
+            fetchRequest.predicate = NSPredicate(format: "complete != true")
+        
+            // sort by item text
+            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
+        
+            let managedObjectContext = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext!
+ 
+            var error : NSError? = nil
+            var resultsof:[AnyObject] = []
+            do {
+                resultsof=try managedObjectContext.executeFetchRequest(fetchRequest)
+            
+            } catch let error1 as NSError {
+                error = error1
+                print("Unresolved error \(error), \(error?.userInfo)")
+                abort()
+            }
+        
+        
+
+            let countofitems = resultsof.count
+            let recentitem = (countofitems - 1)
+            var text = ""
+        
+            if countofitems == 0 {
+                text = ""
+            } else {
+                text = (resultsof[recentitem].valueForKey("text") as? String)!
+            }
+        
+            latestRPMLabel.text = text
+        
+            WorkoutDataClass.sharedWorkoutDataClass.pacearray.append(Double(text)!)
+
+    }
+    
+    // MARK: Actions
+
+    //This buttons ends the workout and invalidates all timers and sends any necessary to global WorkoutDataClass
+    @IBAction func endWorkout(sender: AnyObject) {
+        workoutcompleted = true
+        datatimer.invalidate()
+        timer.invalidate()
+        
+        WorkoutDataClass.sharedWorkoutDataClass.timeelapsed = Int(timeLabel.text!)!
+        
+        
+       
+    }
     
     
     // MARK: - ToDoItemDelegate
@@ -209,56 +234,10 @@ class WorkoutDataViewController: UIViewController, NSFetchedResultsControllerDel
     }
     
     
-    // MARK: - NSFetchedResultsDelegate
     
-    /*
-     func controllerWillChangeContent(controller: NSFetchedResultsController) {
-     dispatch_async(dispatch_get_main_queue(), { () -> Void in
-     //self.tableView.beginUpdates()
-     });
-     }
-     
-     func controller(controller: NSFetchedResultsController, didChangeSection sectionInfo: NSFetchedResultsSectionInfo, atIndex sectionIndex: Int, forChangeType type: NSFetchedResultsChangeType) {
-     
-     dispatch_async(dispatch_get_main_queue(), { () -> Void in
-     let indexSectionSet = NSIndexSet(index: sectionIndex)
-     if type == .Insert {
-     //self.tableView.insertSections(indexSectionSet, withRowAnimation: .Fade)
-     } else if type == .Delete {
-     //self.tableView.deleteSections(indexSectionSet, withRowAnimation: .Fade)
-     }
-     })
-     }
-     
-     func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
-     
-     dispatch_async(dispatch_get_main_queue(), { () -> Void in
-     //switch type {
-     //case .Insert:
-     //self.tableView.insertRowsAtIndexPaths([newIndexPath!], withRowAnimation: .Fade)
-     //case .Delete:
-     //self.tableView.deleteRowsAtIndexPaths([indexPath!], withRowAnimation: .Fade)
-     //case .Move:
-     //self.tableView.deleteRowsAtIndexPaths([indexPath!], withRowAnimation: .Fade)
-     //self.tableView.insertRowsAtIndexPaths([newIndexPath!], withRowAnimation: .Fade)
-     //case .Update:
-     // note: Apple samples show a call to configureCell here; this is incorrect--it can result in retrieving the
-     // wrong index when rows are reordered. For more information, see:
-     // http://go.microsoft.com/fwlink/?LinkID=524590&clcid=0x409
-     //self.tableView.reloadRowsAtIndexPaths([indexPath!], withRowAnimation: .Automatic)
-     //}
-     //})
-     //}
-     
-     func controllerDidChangeContent(controller: NSFetchedResultsController) {
-     dispatch_async(dispatch_get_main_queue(), { () -> Void in
-     //self.tableView.endUpdates()
-     });
-     }
- 
+
+    //Mark: Chart Data used to Chart Characteristics look up swift charts for documentation
     
-    */
-    //Mark: PickerViewData
     func setChart(dataPoints: [String], values: [Double]) {
         
         var dataEntries: [ChartDataEntry] = []
@@ -281,6 +260,7 @@ class WorkoutDataViewController: UIViewController, NSFetchedResultsControllerDel
         
         
         
+        
         let lineChartDataSet = LineChartDataSet(yVals: dataEntries, label: "Pace (RPM)")
         let lineChartData = LineChartData(xVals: dataPoints,dataSet: lineChartDataSet)
         lineChartView.data = lineChartData
@@ -289,6 +269,7 @@ class WorkoutDataViewController: UIViewController, NSFetchedResultsControllerDel
         lineChartView.xAxis.labelPosition = .Bottom
         lineChartView.animate(xAxisDuration: 1.25, yAxisDuration: 1.25, easingOption: .EaseInCubic)
         lineChartView.backgroundColor = UIColor(red: 189/255, green: 195/255, blue: 199/255, alpha: 1)
+
     }
     
 }
