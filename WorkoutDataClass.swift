@@ -14,7 +14,9 @@ class WorkoutDataClass {
     static let sharedWorkoutDataClass = WorkoutDataClass()
     var pacearray : [Double] = []
     var timeelapsed : Int = 0
+    var minelapsed : Int = 0
     var timearray : [String] = []
+    
     
     
     

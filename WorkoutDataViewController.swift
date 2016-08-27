@@ -14,7 +14,7 @@ import Charts
 class WorkoutDataViewController: UIViewController, NSFetchedResultsControllerDelegate {
     
     // Mark: Properties and Variables
-    @IBOutlet weak var lineChartView: LineChartView!
+    //@IBOutlet weak var lineChartView: LineChartView!
     
     var workoutcompleted: Bool = false
     var timer = NSTimer()
@@ -47,13 +47,13 @@ class WorkoutDataViewController: UIViewController, NSFetchedResultsControllerDel
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        let pace = [10.0,5.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0,18.0]
-        let time = ["1.0","2.0","3.0","4.0","5.0","6.0","7.0","8.0","9.0","10.0"]
+        let pace = [10.0, 10.0,10.0, 15.0, 20.0, 15.0,10.0]
+        let time = ["1.0","2.0","3.0","4.0","5.0","6.0"]
         
-        setChart(time, values: pace)
+        //setChart(time, values: pace)
         
         
-        let client = MSClient(applicationURLString: "https://digitalgymcloudtest.azurewebsites.net")
+        let client = MSClient(applicationURLString: "https://digitalgymcloudtwo.azurewebsites.net")
         let managedObjectContext = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext!
         self.store = MSCoreDataStore(managedObjectContext: managedObjectContext)
         client.syncContext = MSSyncContext(delegate: nil, dataSource: self.store, callback: nil)
@@ -200,11 +200,16 @@ class WorkoutDataViewController: UIViewController, NSFetchedResultsControllerDel
 
     //This buttons ends the workout and invalidates all timers and sends any necessary to global WorkoutDataClass
     @IBAction func endWorkout(sender: AnyObject) {
+        if WorkoutDataClass.sharedWorkoutDataClass.pacearray.count == 0 {
+            WorkoutDataClass.sharedWorkoutDataClass.pacearray = [0]
+        }
         workoutcompleted = true
         datatimer.invalidate()
         timer.invalidate()
         
+        
         WorkoutDataClass.sharedWorkoutDataClass.timeelapsed = Int(timeLabel.text!)!
+        WorkoutDataClass.sharedWorkoutDataClass.minelapsed = Int(minTimeLabel.text!)!
         
         
        
@@ -233,43 +238,4 @@ class WorkoutDataViewController: UIViewController, NSFetchedResultsControllerDel
         }
     }
     
-    
-    
-
-    //Mark: Chart Data used to Chart Characteristics look up swift charts for documentation
-    
-    func setChart(dataPoints: [String], values: [Double]) {
-        
-        var dataEntries: [ChartDataEntry] = []
-        
-        for i in 0..<dataPoints.count {
-            let dataEntry = ChartDataEntry(value: values[i], xIndex: i)
-            dataEntries.append(dataEntry)
-        }
-        
-        var colors: [UIColor] = []
-        
-        for i in 0..<dataPoints.count {
-            let red = Double(arc4random_uniform(256))
-            let green = Double(arc4random_uniform(256))
-            let blue = Double(arc4random_uniform(256))
-            
-            let color = UIColor(red: CGFloat(red/255), green: CGFloat(green/255), blue: CGFloat(blue/255), alpha: 1)
-            colors.append(color)
-        }
-        
-        
-        
-        
-        let lineChartDataSet = LineChartDataSet(yVals: dataEntries, label: "Pace (RPM)")
-        let lineChartData = LineChartData(xVals: dataPoints,dataSet: lineChartDataSet)
-        lineChartView.data = lineChartData
-        
-        //Mark: Chart Properties
-        lineChartView.xAxis.labelPosition = .Bottom
-        lineChartView.animate(xAxisDuration: 1.25, yAxisDuration: 1.25, easingOption: .EaseInCubic)
-        lineChartView.backgroundColor = UIColor(red: 189/255, green: 195/255, blue: 199/255, alpha: 1)
-
-    }
-    
-}
+   }

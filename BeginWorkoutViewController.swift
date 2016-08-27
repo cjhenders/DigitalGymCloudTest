@@ -20,7 +20,7 @@ import CoreData
 class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDelegate, UIPickerViewDataSource, UIPickerViewDelegate, UITextFieldDelegate {
     
     
-    //Mark: Variables
+    //Mark: Variables and Tables used for Sql Server
     
     var table2 : MSSyncTable?
     var store2 : MSCoreDataStore?
@@ -50,7 +50,7 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
         
         // Managing the clients for Syncing with Azure Sql
         
-        let client = MSClient(applicationURLString: "https://digitalgymcloudtest.azurewebsites.net")
+        let client = MSClient(applicationURLString: "http://digitalgymcloudtwo.azurewebsites.net")
         let managedObjectContext = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext!
         self.store2 = MSCoreDataStore(managedObjectContext: managedObjectContext)
         client.syncContext = MSSyncContext(delegate: nil, dataSource: self.store2, callback: nil)
@@ -73,13 +73,13 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
         makearrays()
         
         // Navigation and UI Interaction
-        
-        //self.weightText.delegate = self
         self.navigationItem.hidesBackButton = true
+
         
         
     }
     
+    //This function is used throughout the app in order to sync the Core Data to the Azure Sql server by running a query of All Records. This is used typically on viewDidLoad and on any segue to a new view to refresh the table.
     func onRefresh() {
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         
@@ -122,15 +122,6 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
         didSaveItem()
         onRefresh()
     }
-
-    // Mark: Navigation and UI Interaction
-    
-    // Results in Keyboard to Disappear after hitting enter
-    //func textFieldShouldReturn(textField: UITextField) -> Bool {
-        //weightText.resignFirstResponder()
-        //return true
-    //}
-    
     
   
     // Mark: TextFields
@@ -145,7 +136,7 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
 
    
     
-    // MARK: AddingItems
+    // MARK: AddingItems to Azure Sql Server
     
     func didSaveItem()
     {
@@ -163,14 +154,16 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
         var itemToInsert: [String : AnyObject] = [:]
         
         
-        // We set created at to now, so it will sort as we expect it to post the push/pull
-        if age != 1 && weight != 50 && height != 48 {
+        //This is setting the itemToInsert for the Azure Sql Server
+        
+        if age != 1 && weight != 55 && height != 48 {
             itemToInsert = ["gender": gender, "complete": false , "age": age!, "weight": weight!, "startstamp": timestamp, "height": height ]
         }
         else {
             itemToInsert = ["startstamp": timestamp]
         }
         
+        // This pice of code actually inserts the itme into the table. After inserting the item a onRefresh() should be run in order to sync the table with the Sql Server
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         self.table2!.insert(itemToInsert) {
             (item, error) in
@@ -187,7 +180,7 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
     let genderarray : [String] = ["Male","Female"]
     var agearray : [String] = []
     var weightarray : [String] = []
-    let feetarray = ["4","5","6"]
+    let feetarray = ["4","5","6","7"]
     let incharray = ["0","1","2","3","4","5","6","7","8","9","10","11"]
     
     //Mark: Generate Age and Weight array
@@ -209,7 +202,7 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
     
     
     
-    //Mark: PickerViewSetup
+    //Mark: PickerViewSetup - This sets up all the pickerviews used on the first page to gather user information
     
     func numberOfComponentsInPickerView(pickerView: UIPickerView) -> Int {
         return 1

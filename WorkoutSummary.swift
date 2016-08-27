@@ -44,14 +44,15 @@ class WorkoutSummary: UIViewController, NSFetchedResultsControllerDelegate, UITe
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
+        
         // Managing the clients for Syncing with Azure Sql
         
-        let client = MSClient(applicationURLString: "https://digitalgymcloudtest.azurewebsites.net")
+        let client = MSClient(applicationURLString: "https://digitalgymcloudtwo.azurewebsites.net")
         let managedObjectContext = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext!
         self.store2 = MSCoreDataStore(managedObjectContext: managedObjectContext)
         client.syncContext = MSSyncContext(delegate: nil, dataSource: self.store2, callback: nil)
         self.table2 = client.syncTableWithName("UserDataTable")
-        //self.refreshControl?.addTarget(self, action: "onRefresh:", forControlEvents: UIControlEvents.ValueChanged)
+        
         
         // Fetched Controller for Sql Server
         
@@ -128,14 +129,6 @@ class WorkoutSummary: UIViewController, NSFetchedResultsControllerDelegate, UITe
         onRefresh()
     }
     
-    // Mark: Navigation and UI Interaction
-    
-    // Results in Keyboard to Disappear after hitting enter
-    //func textFieldShouldReturn(textField: UITextField) -> Bool {
-    //weightText.resignFirstResponder()
-    //return true
-    //}
-    
     
     
     // Mark: TextFields
@@ -154,26 +147,24 @@ class WorkoutSummary: UIViewController, NSFetchedResultsControllerDelegate, UITe
     
     func didSaveItem()
     {
-        if inchText == "0" && feetText == "4" {
-            height == 48
-        }
-        else {
-            height = ((Float(feetText)! * 12) + (Float(inchText))!)
-        }
-        
-        let gender = genderText
-        let age = Float(ageText)
-        let weight = Float(weightText)
-        let timestamp = Float(NSDate().timeIntervalSince1970)
         var itemToInsert: [String : AnyObject] = [:]
         
-        
+        let endstamp = Float(NSDate().timeIntervalSince1970)
+        /*
         // We set created at to now, so it will sort as we expect it to post the push/pull
-        if age != 1 && weight != 50 && height != 48 {
-            itemToInsert = ["gender": gender, "complete": false , "age": age!, "weight": weight!, "startstamp": timestamp, "height": height ]
-        }
-        else {
-            itemToInsert = ["startstamp": timestamp]
+        
+        
+        itemToInsert = ["endstamp": endstamp]
+        
+        if let newItem = oldItem.mutableCopy() as? NSMutableDictionary {
+            newItem["endstamp"] = endstamp
+            table2.update(newItem as [NSObject: AnyObject], completion: { (result, error) -> Void in
+                if let err = error {
+                    print("ERROR ", err)
+                } else if let item = result {
+                    print("Todo Item: ", item["text"])
+                }
+            })
         }
         
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
@@ -184,6 +175,7 @@ class WorkoutSummary: UIViewController, NSFetchedResultsControllerDelegate, UITe
                 print("Error: " + error!.description)
             }
         }
+ */
     }
     
     
@@ -201,8 +193,9 @@ class WorkoutSummary: UIViewController, NSFetchedResultsControllerDelegate, UITe
     //Mark: Label Connections
     
     
-    @IBOutlet weak var timeElapsedSummary: UILabel!
+    @IBOutlet weak var secondElapsedSummary: UILabel!
     @IBOutlet weak var averageRPMLabel: UILabel!
+    @IBOutlet weak var minElapsedSummary: UILabel!
     
     //Mark: Load up WorkoutData for Summary
     
@@ -210,18 +203,24 @@ class WorkoutSummary: UIViewController, NSFetchedResultsControllerDelegate, UITe
     func loaddataforsummary() {
         
         //This calculates the average RPM for the workout and gathers time elapsed from the global WorkoutDataClass
+        
         let pacearray = WorkoutDataClass.sharedWorkoutDataClass.pacearray
         var total: Double = 0
         
         for values in pacearray {
             total += Double(values)
         }
+        
         let average = (Int(total)/pacearray.count)
         let timeelapsed = WorkoutDataClass.sharedWorkoutDataClass.timeelapsed
+        let secondsElapsed = WorkoutDataClass.sharedWorkoutDataClass.minelapsed
+        
         
         // This sets the labels to the values of the global workout data located in the WorkoutDataClass
+        
         averageRPMLabel.text = String(average)
-        timeElapsedSummary.text = String(timeelapsed)
+        secondElapsedSummary.text = String(timeelapsed)
+        minElapsedSummary.text = String(secondsElapsed)
     }
     
     //Mark: Setting up the Chart

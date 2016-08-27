@@ -34,6 +34,7 @@
         <attribute name="age" optional="YES" attributeType="Float" defaultValueString="0.0" syncable="YES"/>
         <attribute name="complete" optional="YES" attributeType="Boolean" syncable="YES"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" syncable="YES"/>
+        <attribute name="endstamp" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
         <attribute name="gender" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="height" optional="YES" attributeType="Float" defaultValueString="0.0" syncable="YES"/>
         <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
@@ -47,6 +48,6 @@
         <element name="MS_TableOperationErrors" positionX="16" positionY="-54" width="128" height="30"/>
         <element name="MS_TableOperations" positionX="-72" positionY="54" width="128" height="30"/>
         <element name="TodoItem" positionX="-153" positionY="-81" width="128" height="165"/>
-        <element name="UserDataTable" positionX="-63" positionY="-9" width="128" height="195"/>
+        <element name="UserDataTable" positionX="-63" positionY="-9" width="128" height="210"/>
     </elements>
 </model>
