@@ -155,7 +155,7 @@ ERERDRE
                                 </state>
                                 <connections>
                                     <action selector="startWorkout:" destination="zeH-il-2iT" eventType="touchUpInside" id="VRx-0s-g7x"/>
-                                    <segue destination="HFg-mI-422" kind="push" id="TaX-cp-38N"/>
+                                    <segue destination="HFg-mI-422" kind="push" id="Ak8-ac-xBd"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -312,7 +312,7 @@ ERERDRE
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Lastest RPM:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="guZ-9I-Z67">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Latest RPM:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="guZ-9I-Z67">
                                 <rect key="frame" x="95" y="425" width="250" height="125"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="42"/>

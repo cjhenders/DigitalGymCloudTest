@@ -22,11 +22,13 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
     
     //Mark: Variables and Tables used for Sql Server
     
+    //This initializes the Microsoft Table and Data stores for Azure Framework
     var table2 : MSSyncTable?
     var store2 : MSCoreDataStore?
     
+    //This fetches data from the Sql Server by having semi-query seearches. The predicates are like more defined searches.
     lazy var fetchedResultController: NSFetchedResultsController = {
-        let fetchRequest = NSFetchRequest(entityName: "UserDataTable")
+        let fetchRequest = NSFetchRequest(entityName: "SessionData")
         let managedObjectContext = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext!
         
         // show only non-completed items
@@ -44,17 +46,18 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
         return resultsController
     }()
     
+    //These are the items that are done first when the view is loaded.
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
         // Managing the clients for Syncing with Azure Sql
         
-        let client = MSClient(applicationURLString: "http://digitalgymcloudtwo.azurewebsites.net")
+        let client = MSClient(applicationURLString: "http://mobile-flask-app.azurewebsites.net")
         let managedObjectContext = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext!
         self.store2 = MSCoreDataStore(managedObjectContext: managedObjectContext)
         client.syncContext = MSSyncContext(delegate: nil, dataSource: self.store2, callback: nil)
-        self.table2 = client.syncTableWithName("UserDataTable")
+        self.table2 = client.syncTableWithName("SessionData")
         //self.refreshControl?.addTarget(self, action: "onRefresh:", forControlEvents: UIControlEvents.ValueChanged)
         
         // Fetched Controller for Sql Server
@@ -74,6 +77,10 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
         
         // Navigation and UI Interaction
         self.navigationItem.hidesBackButton = true
+        
+        print(WorkoutDataClass.sharedWorkoutDataClass.pacearray)
+        print(WorkoutDataClass.sharedWorkoutDataClass.timestamp)
+        print(WorkoutDataClass.sharedWorkoutDataClass.timeelapsed)
 
         
         
@@ -117,6 +124,7 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
     
     // Mark: Actions
     
+    //This outlines any actions called when the start workout button is hit.
     @IBAction func startWorkout(sender: AnyObject) {
         
         didSaveItem()
@@ -125,9 +133,10 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
     
   
     // Mark: TextFields
+    //These are the default values used in the didSaveItem function because they are used incase of someone not putting in any data.
     
     var genderText: String = "Male"
-    var height : Float = 0
+    var height : Int = 0
     var inchText: String = "0"
     var feetText: String = "4"
     var ageText: String = "1"
@@ -144,23 +153,24 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
             height == 48
         }
         else {
-            height = ((Float(feetText)! * 12) + (Float(inchText))!)
+            height = ((Int(feetText)! * 12) + (Int(inchText))!)
         }
         
         let gender = genderText
-        let age = Float(ageText)
+        let age = Int(ageText)
         let weight = Float(weightText)
-        let timestamp = Float(NSDate().timeIntervalSince1970)
+        let timestamp = NSNumber(double: NSDate().timeIntervalSince1970)
+        WorkoutDataClass.sharedWorkoutDataClass.timestamp = timestamp
         var itemToInsert: [String : AnyObject] = [:]
         
         
         //This is setting the itemToInsert for the Azure Sql Server
         
         if age != 1 && weight != 55 && height != 48 {
-            itemToInsert = ["gender": gender, "complete": false , "age": age!, "weight": weight!, "startstamp": timestamp, "height": height ]
+            itemToInsert = [ "gender": gender ,"complete": false, "age": age!, "weight": weight!, "stampStart": timestamp, "height": height,]
         }
         else {
-            itemToInsert = ["startstamp": timestamp]
+            itemToInsert = ["stampStart": timestamp]
         }
         
         // This pice of code actually inserts the itme into the table. After inserting the item a onRefresh() should be run in order to sync the table with the Sql Server
@@ -176,6 +186,7 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
     
     
     //Mark: PickerViewData
+    //This is the data used for the pickerviews so that the user can choose the most appropriate description.
     
     let genderarray : [String] = ["Male","Female"]
     var agearray : [String] = []
@@ -183,8 +194,9 @@ class BeginWorkoutViewController: UIViewController, NSFetchedResultsControllerDe
     let feetarray = ["4","5","6","7"]
     let incharray = ["0","1","2","3","4","5","6","7","8","9","10","11"]
     
-    //Mark: Generate Age and Weight array
     
+    //Mark: Generate Age and Weight array
+    //Makes the arrays for the pickerview data.
     func makearrays(){
         var age = 0
         var weight = 50

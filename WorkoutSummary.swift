@@ -22,14 +22,14 @@ class WorkoutSummary: UIViewController, NSFetchedResultsControllerDelegate, UITe
     var store2 : MSCoreDataStore?
     
     lazy var fetchedResultController: NSFetchedResultsController = {
-        let fetchRequest = NSFetchRequest(entityName: "UserDataTable")
+        let fetchRequest = NSFetchRequest(entityName: "SessionData")
         let managedObjectContext = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext!
         
         // show only non-completed items
-        fetchRequest.predicate = NSPredicate(format: "complete != true")
+        fetchRequest.predicate = NSPredicate(format: "stampStart >= 0")
         
         // sort by item text
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "stampStart", ascending: true)]
         
         // Note: if storing a lot of data, you should specify a cache for the last parameter
         // for more information, see Apple's documentation: http://go.microsoft.com/fwlink/?LinkId=524591&clcid=0x409
@@ -47,11 +47,11 @@ class WorkoutSummary: UIViewController, NSFetchedResultsControllerDelegate, UITe
         
         // Managing the clients for Syncing with Azure Sql
         
-        let client = MSClient(applicationURLString: "https://digitalgymcloudtwo.azurewebsites.net")
+        let client = MSClient(applicationURLString: "http://mobile-flask-app.azurewebsites.net")
         let managedObjectContext = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext!
         self.store2 = MSCoreDataStore(managedObjectContext: managedObjectContext)
         client.syncContext = MSSyncContext(delegate: nil, dataSource: self.store2, callback: nil)
-        self.table2 = client.syncTableWithName("UserDataTable")
+        self.table2 = client.syncTableWithName("SessionData")
         
         
         // Fetched Controller for Sql Server
@@ -66,13 +66,12 @@ class WorkoutSummary: UIViewController, NSFetchedResultsControllerDelegate, UITe
         }
         
         // Refresh Data on Load
+        
         onRefresh()
         makearrays()
         loaddataforsummary()
         
         // Navigation and UI Interaction
-        
-        //self.weightText.delegate = self
         self.navigationItem.hidesBackButton = true
         
         // Setting up the Chart
@@ -82,7 +81,8 @@ class WorkoutSummary: UIViewController, NSFetchedResultsControllerDelegate, UITe
         
         setChart(time, values: pace)
 
-        
+        print (WorkoutDataClass.sharedWorkoutDataClass.pacearray)
+        print(WorkoutDataClass.sharedWorkoutDataClass.timestamp)
         
     }
     
@@ -122,12 +122,7 @@ class WorkoutSummary: UIViewController, NSFetchedResultsControllerDelegate, UITe
     }
     
     // Mark: Actions
-    
-    @IBAction func startWorkout(sender: AnyObject) {
-        
-        didSaveItem()
-        onRefresh()
-    }
+
     
     
     
@@ -144,42 +139,6 @@ class WorkoutSummary: UIViewController, NSFetchedResultsControllerDelegate, UITe
     
     
     // MARK: AddingItems
-    
-    func didSaveItem()
-    {
-        var itemToInsert: [String : AnyObject] = [:]
-        
-        let endstamp = Float(NSDate().timeIntervalSince1970)
-        /*
-        // We set created at to now, so it will sort as we expect it to post the push/pull
-        
-        
-        itemToInsert = ["endstamp": endstamp]
-        
-        if let newItem = oldItem.mutableCopy() as? NSMutableDictionary {
-            newItem["endstamp"] = endstamp
-            table2.update(newItem as [NSObject: AnyObject], completion: { (result, error) -> Void in
-                if let err = error {
-                    print("ERROR ", err)
-                } else if let item = result {
-                    print("Todo Item: ", item["text"])
-                }
-            })
-        }
-        
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
-        self.table2!.insert(itemToInsert) {
-            (item, error) in
-            UIApplication.sharedApplication().networkActivityIndicatorVisible = false
-            if error != nil {
-                print("Error: " + error!.description)
-            }
-        }
- */
-    }
-    
-    
-       
 
     
     //This restarts the workout as well as resets the global workout data that is located in the WorkoutDataClass.swift
@@ -187,6 +146,7 @@ class WorkoutSummary: UIViewController, NSFetchedResultsControllerDelegate, UITe
         WorkoutDataClass.sharedWorkoutDataClass.pacearray = []
         WorkoutDataClass.sharedWorkoutDataClass.timeelapsed = 0
         WorkoutDataClass.sharedWorkoutDataClass.timearray = []
+        WorkoutDataClass.sharedWorkoutDataClass.timestamp = 0
     }
     
     
@@ -224,6 +184,7 @@ class WorkoutSummary: UIViewController, NSFetchedResultsControllerDelegate, UITe
     }
     
     //Mark: Setting up the Chart
+    //This sets up the chart used in the final view. It uses the swift charts frameworks. There is documentation online.
     
     func setChart(dataPoints: [String], values: [Double]) {
         
@@ -258,6 +219,7 @@ class WorkoutSummary: UIViewController, NSFetchedResultsControllerDelegate, UITe
         workoutSummaryChart.backgroundColor = UIColor(red: 189/255, green: 195/255, blue: 199/255, alpha: 1)
 
     }
+    
     //Mark: Make Arrays for time values for chart. It is based off the number of items within the global pacearray in WorkoutDataClass
     
     func makearrays() {

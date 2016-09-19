@@ -16,6 +16,7 @@ class WorkoutDataClass {
     var timeelapsed : Int = 0
     var minelapsed : Int = 0
     var timearray : [String] = []
+    var timestamp : NSNumber = 0
     
     
     
